@@ -24,6 +24,7 @@ const Navbar = () => {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const { theme, setTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -47,6 +48,8 @@ const Navbar = () => {
   }, [session?.user?.email, session?.user?.name]);
 
   const handleNavigateDashboard = () => {
+    // close dropdown then navigate
+    setMenuOpen(false);
     router.push("/dashboard");
   };
 
@@ -54,6 +57,8 @@ const Navbar = () => {
     if (isSigningOut) return;
     try {
       setIsSigningOut(true);
+      // close dropdown immediately for better UX
+      setMenuOpen(false);
       await authClient.signOut();
       router.push("/");
     } finally {
@@ -114,11 +119,11 @@ const Navbar = () => {
             decorative
           />
           {session?.user ? (
-            <DropdownMenu>
+            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="relative h-11 w-11 rounded-full border p-0"
+                  className="relative rounded-full border p-0"
                 >
                   <Avatar className="h-9 w-9">
                     {session.user.image ? (
@@ -133,9 +138,9 @@ const Navbar = () => {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className=" bg-canvas-on-canvas">
                 <DropdownMenuLabel>
-                  <div className="space-y-0.5">
+                  <div className=" border-b border-canvas-border py-2 space-y-0.5">
                     <p className="text-sm font-semibold leading-tight">
                       {session.user.name ?? "Authenticated user"}
                     </p>
@@ -150,7 +155,7 @@ const Navbar = () => {
                     event.preventDefault();
                     handleNavigateDashboard();
                   }}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-canvas-bg-subtle"
                 >
                   <LayoutDashboard className="size-4" />
                   Dashboard
@@ -159,9 +164,10 @@ const Navbar = () => {
                   onSelect={(event) => {
                     event.preventDefault();
                     handleLogout();
+
                   }}
                   className={cn(
-                    "cursor-pointer",
+                    "cursor-pointer hover:bg-canvas-bg-subtle",
                     isSigningOut && "opacity-70"
                   )}
                   disabled={isSigningOut}
